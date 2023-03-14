@@ -22,7 +22,7 @@ namespace LordAshes
         // Configuration
         static string webURL { get; set; }
         static bool d20Only { get; set; }
-        static bool d20Only { get; set; }
+        static bool localOnly { get; set; }
 
         void Awake()
         {
@@ -52,7 +52,7 @@ namespace LordAshes
                 }
                 else
                 {
-                    Debug.Log("Roll Post Plugin: Roll has been made by Player - Posting Die Roll");
+                    Debug.Log("Roll Post Plugin: Roll Made By Other Player - Posting Die Roll");
                 }
                 if (d20Only)
                 {
