@@ -4,6 +4,7 @@ using HarmonyLib;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using UnityEngine;
 
@@ -16,11 +17,12 @@ namespace LordAshes
         // Plugin info
         public const string Name = "Roll Post Plug-In";              
         public const string Guid = "org.lordashes.plugins.rollpost";
-        public const string Version = "1.3.2.0";
+        public const string Version = "1.3.3.0";
 
         // Configuration
         static string webURL { get; set; }
         static bool d20Only { get; set; }
+        static bool localOnly { get; set; }
 
         void Awake()
         {
@@ -28,6 +30,7 @@ namespace LordAshes
 
             webURL = Config.Bind("Settings", "Web Application URL", "http://127.0.0.1/Dice.php").Value;
             d20Only = Config.Bind("Settings", "D20 Only", true).Value;
+            localOnly = Config.Bind("Settings", "Local Player Only", true).Value;
 
             var harmony = new Harmony(Guid);
             harmony.PatchAll();
@@ -38,9 +41,19 @@ namespace LordAshes
         public static void PostRoll(DiceManager.DiceRollResultData diceResult, string client)
         {
             Debug.Log("Roll Post Plugin: Posting Callback (Player="+ CampaignSessionManager.GetPlayerName(LocalPlayer.Id)+", Roller="+client+")");
-            if (client == CampaignSessionManager.GetPlayerName(LocalPlayer.Id))
+            if (client != CampaignSessionManager.GetPlayerName(LocalPlayer.Id) && localOnly)
             {
-                Debug.Log("Roll Post Plugin: Roll Made By Local Player - Posting Die Roll");
+                Debug.Log("Roll Post Plugin: Roll Made By Other Player - Not Posting Result");
+            }
+            else
+                if (client == CampaignSessionManager.GetPlayerName(LocalPlayer.Id))
+                {
+                    Debug.Log("Roll Post Plugin: Roll Made By Local Player - Posting Die Roll");
+                }
+                else
+                {
+                    Debug.Log("Roll Post Plugin: Roll Made By Other Player - Posting Die Roll");
+                }
                 if (d20Only)
                 {
                     Dictionary<string, string> kvp = new Dictionary<string, string>();
@@ -91,10 +104,6 @@ namespace LordAshes
                         string HtmlResult = wc.UploadString(webURL, JsonConvert.SerializeObject(diceResult));
                     }
                 }
-            }
-            else
-            {
-                Debug.Log("Roll Post Plugin: Roll Made By Other Player - Not Posting Result");
             }
         }
 
